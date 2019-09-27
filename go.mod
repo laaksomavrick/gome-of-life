@@ -1,3 +1,3 @@
-module gof
+module gol
 
 go 1.12
