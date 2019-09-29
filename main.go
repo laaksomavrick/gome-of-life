@@ -1,8 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"time"
+	"gol/gol"
 )
 
 // every n ms a tick happens, and then a render() function is called
@@ -16,37 +15,35 @@ import (
 //simulation.go
 //simulation_queue.go
 
-const (
-	tickRate = time.Second * 1
-)
-
 func main() {
 
-	// Buffered channel
-	comps := make(chan int, 10)
+	queue := make(chan [][]bool, 10)
 
-	for {
-		// Do a lot of big computations in the background
-		go asyncBigComputation(comps)
+	renderer := gol.NewRenderer(queue)
+	renderer.Init()
 
-		select {
-		case comp := <-comps:
-			fmt.Println(comp)
-			time.Sleep(tickRate)
+	x, y := renderer.Size()
 
-		default:
-			fmt.Println("waiting...")
-			time.Sleep(tickRate)
-		}
-	}
+	//fmt.Println(x)
+	//fmt.Println(y)
+
+	simulation := gol.NewSimulation(x, y, queue)
+
+	_ = simulation.ToggleCell(20, 21)
+	_ = simulation.ToggleCell(20, 22)
+	_ = simulation.ToggleCell(20, 23)
+
+	simulation.Simulate()
+
+	renderer.Read()
 
 }
 
-func asyncBigComputation(ch chan<- int) {
-	result := bigComputation()
-	ch <- result
-}
-
-func bigComputation() int {
-	return 42
-}
+//func asyncBigComputation(ch chan<- int) {
+//	result := bigComputation()
+//	ch <- result
+//}
+//
+//func bigComputation() int {
+//	return 42
+//}
