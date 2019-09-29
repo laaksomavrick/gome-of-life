@@ -3,6 +3,7 @@ package gol
 import (
 	"errors"
 	"fmt"
+	"log"
 )
 
 // 2 dimensional grid of cells, infinite (ie wrapping)
@@ -20,7 +21,9 @@ import (
 
 type Simulation struct {
 	xAxisSize int
+	xAxisSizeZeroIndexed int
 	yAxisSize int
+	yAxisSizeZeroIndexed int
 	cells [][]bool
 }
 
@@ -29,13 +32,23 @@ type Simulation struct {
 // y extends vertically
 // cells[y][x]
 func NewSimulation(xSize int, ySize int) *Simulation {
+	if xSize < 1 {
+		log.Fatalf("xSize must be greater than or equal to 1")
+	}
+
+	if ySize < 1 {
+		log.Fatalf("ySize must be greater than or equal to 1")
+	}
+
 	cells := make([][]bool, ySize)
 	for row := range cells {
 		cells[row] = make([]bool, xSize)
 	}
 	return &Simulation{
 		xAxisSize: xSize,
+		xAxisSizeZeroIndexed: xSize - 1,
 		yAxisSize: ySize,
+		yAxisSizeZeroIndexed: ySize - 1,
 		cells: cells,
 	}
 }
@@ -85,7 +98,7 @@ func (s *Simulation) String() string {
 func (s *Simulation) tickCell(x int, y int, state bool) {
 	neighbours := 0
 
-	if s.neighbourExistsEast(x, y) {
+	if s.neighbourExistsEastFrom(x, y) {
 		neighbours += 1
 	}
 
@@ -94,13 +107,106 @@ func (s *Simulation) tickCell(x int, y int, state bool) {
 	s.cells[y][x] = true
 }
 
-func (s *Simulation) neighbourExistsEast(x int, y int) bool {
-	if x == s.xAxisSize - 1 {
-		// wrap
+func (s *Simulation) neighbourExistsEastFrom(x int, y int) bool {
+	if x == s.xAxisSizeZeroIndexed {
 		neighbour := s.cells[y][0]
 		return neighbour
 	} else {
 		neighbour := s.cells[y][x + 1]
+		return neighbour
+	}
+}
+
+func (s *Simulation) neighbourExistsNorthEastFrom(x int, y int) bool {
+	if y == 0 || x == s.xAxisSizeZeroIndexed {
+		var wrappedXPos int
+		if x == s.xAxisSizeZeroIndexed {
+			wrappedXPos = 0
+		} else {
+			wrappedXPos = x + 1
+		}
+		neighbour := s.cells[s.yAxisSizeZeroIndexed][wrappedXPos]
+		return neighbour
+	} else {
+		neighbour := s.cells[y - 1][x + 1]
+		return neighbour
+	}
+}
+
+func (s *Simulation) neighbourExistsNorthFrom(x int, y int) bool {
+	if y == 0 {
+		neighbour := s.cells[s.yAxisSizeZeroIndexed][x]
+		return neighbour
+	} else {
+		neighbour := s.cells[y - 1][x]
+		return neighbour
+	}
+}
+
+func (s *Simulation) neighbourExistsNorthWestFrom(x int, y int) bool {
+	if y == 0 || x == 0 {
+		var wrappedXPos int
+		if x == 0 {
+			wrappedXPos = s.xAxisSizeZeroIndexed
+		} else {
+			wrappedXPos = x - 1
+		}
+		neighbour := s.cells[s.yAxisSizeZeroIndexed][wrappedXPos]
+		return neighbour
+	} else {
+		neighbour := s.cells[y - 1][x - 1]
+		return neighbour
+	}
+}
+
+func (s *Simulation) neighbourExistsWestFrom(x int, y int) bool {
+	if x == 0 {
+		neighbour := s.cells[y][s.xAxisSizeZeroIndexed]
+		return neighbour
+	} else {
+		neighbour := s.cells[y][x - 1]
+		return neighbour
+	}
+}
+
+func (s *Simulation) neighbourExistsSouthWestFrom(x int, y int) bool {
+	if y == s.yAxisSizeZeroIndexed || x == 0 {
+		var wrappedXPos int
+		if x == 0 {
+			wrappedXPos = s.xAxisSizeZeroIndexed
+		} else {
+			wrappedXPos = x - 1
+		}
+		neighbour := s.cells[0][wrappedXPos]
+		return neighbour
+	} else {
+		neighbour := s.cells[y + 1][x - 1]
+		return neighbour
+	}
+}
+
+func (s *Simulation) neighbourExistsSouthFrom(x int, y int) bool {
+	if y == s.yAxisSizeZeroIndexed {
+		neighbour := s.cells[0][x]
+		return neighbour
+	} else {
+		neighbour := s.cells[y + 1][x]
+		return neighbour
+	}
+}
+
+func (s *Simulation) neighbourExistsSouthEastFrom(x int, y int) bool {
+	if y == s.yAxisSizeZeroIndexed || x == s.xAxisSizeZeroIndexed {
+		var wrappedXPos int
+		if x == s.xAxisSizeZeroIndexed {
+			wrappedXPos = 0
+		} else {
+			wrappedXPos = x + 1
+		}
+		neighbour := s.cells[0][wrappedXPos]
+		return neighbour
+	} else {
+		neighbour := s.cells[y + 1][x + 1]
 		return neighbour
 	}
 }
