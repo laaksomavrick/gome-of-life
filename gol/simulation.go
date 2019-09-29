@@ -31,37 +31,36 @@ type Simulation struct {
 // x extends horizontally
 // y extends vertically
 // cells[y][x]
-func NewSimulation(xSize int, ySize int) *Simulation {
-	if xSize < 1 {
+func NewSimulation(xAxisSize int, yAxisSize int) *Simulation {
+	if xAxisSize < 1 {
 		log.Fatalf("xSize must be greater than or equal to 1")
 	}
 
-	if ySize < 1 {
+	if yAxisSize < 1 {
 		log.Fatalf("ySize must be greater than or equal to 1")
 	}
 
-	cells := make([][]bool, ySize)
-	for row := range cells {
-		cells[row] = make([]bool, xSize)
-	}
+	cells := newCells(xAxisSize, yAxisSize)
+
 	return &Simulation{
-		xAxisSize: xSize,
-		xAxisSizeZeroIndexed: xSize - 1,
-		yAxisSize: ySize,
-		yAxisSizeZeroIndexed: ySize - 1,
+		xAxisSize: xAxisSize,
+		xAxisSizeZeroIndexed: xAxisSize - 1,
+		yAxisSize: yAxisSize,
+		yAxisSizeZeroIndexed: yAxisSize - 1,
 		cells: cells,
 	}
 }
 
-func (s *Simulation) Tick() [][]bool {
-	for row := range s.cells {
-		for col := range s.cells[row] {
-			state := s.cells[row][col]
-			s.tickCell(row, col, state)
+func (s *Simulation) Tick() {
+	newCellsState := newCells(s.xAxisSize, s.yAxisSize)
+	for y := range s.cells {
+		for x := range s.cells[y] {
+			state := s.cells[y][x]
+			newState := s.tickCell(x, y, state)
+			newCellsState[y][x] = newState
 		}
 	}
-
-	return s.cells
+	s.cells = newCellsState
 }
 
 func (s *Simulation) ToggleCell(x int, y int) error {
@@ -95,16 +94,55 @@ func (s *Simulation) String() string {
 	return stringRepresentation
 }
 
-func (s *Simulation) tickCell(x int, y int, state bool) {
-	neighbours := 0
+func newCells(xSize int, ySize int) [][]bool {
+	cells := make([][]bool, ySize)
+	for row := range cells {
+		cells[row] = make([]bool, xSize)
+	}
+	return cells
+}
 
-	if s.neighbourExistsEastFrom(x, y) {
-		neighbours += 1
+func (s *Simulation) tickCell(x int, y int, state bool) bool {
+	var newState bool
+	neighbours := 0
+	funcs := []func(int, int) bool{
+		s.neighbourExistsEastFrom,
+		s.neighbourExistsNorthEastFrom,
+		s.neighbourExistsNorthFrom,
+		s.neighbourExistsNorthWestFrom,
+		s.neighbourExistsWestFrom,
+		s.neighbourExistsSouthWestFrom,
+		s.neighbourExistsSouthFrom,
+		s.neighbourExistsSouthEastFrom,
 	}
 
-	// ... TODO
+	for _, fn := range funcs {
+		neighbourExists := fn(x, y)
+		if neighbourExists {
+			neighbours += 1
+		}
+	}
 
-	s.cells[y][x] = true
+	// any live cell with fewer than 2 live neighbours dies
+	// any live cell with 2 or 3 live neighbours does nothing
+	// any live cell with more than 3 live neighbours dies
+	// any dead cell with exactly three live neighbours becomes a live cell
+
+	if state == true {
+		if neighbours < 2 {
+			newState = false
+		} else if neighbours == 2 || neighbours == 3 {
+			newState = state
+		} else if neighbours > 3 {
+			newState = false
+		}
+	} else {
+		if neighbours == 3 {
+			newState = true
+		}
+	}
+
+	return newState
 }
 
 func (s *Simulation) neighbourExistsEastFrom(x int, y int) bool {
