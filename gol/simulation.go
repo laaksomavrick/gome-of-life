@@ -6,19 +6,6 @@ import (
 	"log"
 )
 
-// 2 dimensional grid of cells, infinite (ie wrapping)
-// each cell is in one of two states; alive or dead
-// each cell interacts with it's neighbors (8), n, ne, w, sw, s, se, e, ne
-
-// each tick:
-// any live cell with fewer than 2 live neighbours dies
-// any live cell with 2 or 3 live neighbours does nothing
-// any live cell with more than 3 live neighbours dies
-
-// any dead cell with exactly three live neighbours becomes a live cell
-
-// Alive = true, Dead = false
-
 type Simulation struct {
 	xAxisSize int
 	xAxisSizeZeroIndexed int
@@ -64,7 +51,6 @@ func (s *Simulation) Simulate() {
 }
 
 func (s *Simulation) Tick() {
-	fmt.Print("tick")
 	newCellsState := newCells(s.xAxisSize, s.yAxisSize)
 	for y := range s.cells {
 		for x := range s.cells[y] {

@@ -9,7 +9,7 @@ import (
 
 const (
 	cellRune = rune('.')
-	tickRate = time.Second * 1
+	tickRate = time.Millisecond * 250
 )
 
 type Renderer struct {
@@ -52,7 +52,6 @@ func (r *Renderer) Init() {
 	r.pumpEvents()
 	r.setStyle()
 	r.setKeyEventHandlers()
-
 }
 
 func (r *Renderer) Read() {
