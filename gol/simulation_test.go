@@ -7,9 +7,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestGol(t *testing.T) {
+func TestSimulation(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Gol Suite")
+	RunSpecs(t, "Simulation Suite")
 }
 
 var _ = Describe("Simulation", func() {
@@ -19,7 +19,54 @@ var _ = Describe("Simulation", func() {
 		simulation = NewSimulation(5, 5)
 	})
 
-	Describe("Cells", func() {
+	Describe("Simulation", func() {
+		It("Generates a blinker", func() {
+			simulation := NewSimulation(5, 5)
+
+			_ = simulation.ToggleCell(2, 1)
+			_ = simulation.ToggleCell(2, 2)
+			_ = simulation.ToggleCell(2, 3)
+
+			simulation.Tick()
+			cells := simulation.cells
+
+			Expect(cells[2][1]).To(Equal(true))
+			Expect(cells[2][2]).To(Equal(true))
+			Expect(cells[2][3]).To(Equal(true))
+
+			Expect(cells[1][2]).To(Equal(false))
+			Expect(cells[3][2]).To(Equal(false))
+
+			simulation.Tick()
+			cells = simulation.cells
+
+			Expect(cells[1][2]).To(Equal(true))
+			Expect(cells[2][2]).To(Equal(true))
+			Expect(cells[3][2]).To(Equal(true))
+
+			Expect(cells[2][1]).To(Equal(false))
+			Expect(cells[2][3]).To(Equal(false))
+		})
+	})
+
+	It("Generates a block", func() {
+		simulation := NewSimulation(5, 5)
+
+		_ = simulation.ToggleCell(0, 0)
+		_ = simulation.ToggleCell(1, 0)
+		_ = simulation.ToggleCell(0, 1)
+		_ = simulation.ToggleCell(1, 1)
+
+		simulation.Tick()
+		cells := simulation.cells
+
+		Expect(cells[0][0]).To(Equal(true))
+		Expect(cells[1][0]).To(Equal(true))
+		Expect(cells[0][1]).To(Equal(true))
+		Expect(cells[1][1]).To(Equal(true))
+	})
+
+	Describe("Cell neighbour checking", func() {
 		It("Doesn't crash when cell is in a corner", func () {
 			type coord struct {
 				x, y int
