@@ -13,15 +13,16 @@ func TestSimulation(t *testing.T) {
 }
 
 var _ = Describe("Simulation", func() {
-	var simulation *Simulation
+	var simulation Simulation
+	queue := make(chan[][]bool, 10)
 
 	BeforeEach(func () {
-		simulation = NewSimulation(5, 5)
+		simulation = NewSimulation(5, 5, queue)
 	})
 
 	Describe("Simulation", func() {
 		It("Generates a blinker", func() {
-			simulation := NewSimulation(5, 5)
+			simulation := NewSimulation(5, 5, queue)
 
 			_ = simulation.ToggleCell(2, 1)
 			_ = simulation.ToggleCell(2, 2)
@@ -50,7 +51,7 @@ var _ = Describe("Simulation", func() {
 	})
 
 	It("Generates a block", func() {
-		simulation := NewSimulation(5, 5)
+		simulation := NewSimulation(5, 5, queue)
 
 		_ = simulation.ToggleCell(0, 0)
 		_ = simulation.ToggleCell(1, 0)

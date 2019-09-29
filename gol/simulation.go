@@ -25,13 +25,14 @@ type Simulation struct {
 	yAxisSize int
 	yAxisSizeZeroIndexed int
 	cells [][]bool
+	queue chan[][]bool
 }
 
 // Origin is top left corner
 // x extends horizontally
 // y extends vertically
 // cells[y][x]
-func NewSimulation(xAxisSize int, yAxisSize int) *Simulation {
+func NewSimulation(xAxisSize int, yAxisSize int, queue chan[][]bool) Simulation {
 	if xAxisSize < 1 {
 		log.Fatalf("xSize must be greater than or equal to 1")
 	}
@@ -42,16 +43,28 @@ func NewSimulation(xAxisSize int, yAxisSize int) *Simulation {
 
 	cells := newCells(xAxisSize, yAxisSize)
 
-	return &Simulation{
+	return Simulation{
 		xAxisSize: xAxisSize,
 		xAxisSizeZeroIndexed: xAxisSize - 1,
 		yAxisSize: yAxisSize,
 		yAxisSizeZeroIndexed: yAxisSize - 1,
 		cells: cells,
+		queue: queue,
 	}
 }
 
+func (s *Simulation) Simulate() {
+	go func() {
+		for {
+			state := s.cells
+			s.queue <- state
+			s.Tick()
+		}
+	}()
+}
+
 func (s *Simulation) Tick() {
+	fmt.Print("tick")
 	newCellsState := newCells(s.xAxisSize, s.yAxisSize)
 	for y := range s.cells {
 		for x := range s.cells[y] {
